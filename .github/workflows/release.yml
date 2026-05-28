@@ -30,6 +30,11 @@ jobs:
           curl https://sh.rustup.rs -sSf | sh -s -- -y
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
+      - name: Install cargo-php
+        run: |
+          . "$HOME/.cargo/env"
+          cargo install cargo-php
+
       - name: Build and test
         run: |
           . "$HOME/.cargo/env"
