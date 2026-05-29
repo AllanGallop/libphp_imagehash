@@ -20,13 +20,13 @@
 
 ## Quick start
 
-If you already have a prebuilt release library, you can load it directly in PHP without building the extension yourself.
+[Download](https://github.com/AllanGallop/libphp_imagehash/releases/tag/v1.0.0) the latest build of `php_imagehash-linux-x86_64-php83.so` load it directly in PHP without building the extension yourself.
 
-1. Copy or install the release library `libphp_imagehash.so` to a location accessible by PHP.
+1. Copy or install the release library `php_imagehash-linux-x86_64-php83.so` to a location accessible by PHP.
 2. Add the library to `php.ini`:
 
 ```ini
-extension=/path/to/libphp_imagehash.so
+extension=/path/to/php_imagehash-linux-x86_64-php83.so
 ```
 
 3. Restart PHP or your web server if needed.
