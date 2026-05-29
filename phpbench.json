@@ -1,0 +1,14 @@
+{
+  "$schema": "./vendor/phpbench/phpbench/phpbench.schema.json",
+  "runner.bootstrap": "vendor/autoload.php",
+  "runner.path": "benchmarks",
+  "runner.php_config": {
+    "extension": "target/release/libphp_imagehash.so"
+  },
+  "report.outputs": {
+    "default": {
+      "extends": "aggregate",
+      "cols": ["benchmark", "subject", "mode", "mean", "mem_peak"]
+    }
+  }
+}

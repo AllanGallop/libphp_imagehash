@@ -1,5 +1,9 @@
 Cargo.lock
-target/
-tests/output/
+/target
+/tests/outputs
+/benchmarks/fixtures
+/vendor
+/.venv
+composer.lock
 *.so
 *.dll

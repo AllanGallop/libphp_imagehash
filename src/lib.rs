@@ -2,6 +2,7 @@ use ext_php_rs::prelude::*;
 use std::collections::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
 use image::imageops::FilterType;
+use rustdct::DctPlanner;
 
 #[php_class]
 #[derive(Serialize, Deserialize)]
@@ -209,6 +210,67 @@ fn hash_to_hex(hash: u64) -> String {
     format!("{:016x}", hash)
 }
 
+fn phash_file(path: &str) -> Result<u64, image::ImageError> {
+    let img = image::open(path)?;
+
+    let gray = img
+        .resize_exact(32, 32, FilterType::Triangle)
+        .to_luma8();
+
+    let mut matrix = vec![vec![0f32; 32]; 32];
+
+    for y in 0..32 {
+        for x in 0..32 {
+            matrix[y][x] = gray.get_pixel(x as u32, y as u32)[0] as f32;
+        }
+    }
+
+    let mut planner = DctPlanner::new();
+    let dct = planner.plan_dct2(32);
+
+    for row in matrix.iter_mut() {
+        dct.process_dct2(row);
+    }
+
+    for x in 0..32 {
+        let mut col: Vec<f32> = (0..32).map(|y| matrix[y][x]).collect();
+        dct.process_dct2(&mut col);
+
+        for y in 0..32 {
+            matrix[y][x] = col[y];
+        }
+    }
+
+    let mut values = Vec::with_capacity(64);
+
+    for y in 0..8 {
+        for x in 0..8 {
+            if x == 0 && y == 0 {
+                continue;
+            }
+
+            values.push(matrix[y][x]);
+        }
+    }
+
+    let mut sorted = values.clone();
+    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+    let median = sorted[sorted.len() / 2];
+
+    let mut hash: u64 = 0;
+
+    for value in values {
+        hash <<= 1;
+
+        if value > median {
+            hash |= 1;
+        }
+    }
+
+    Ok(hash)
+}
+
 #[php_function]
 pub fn hamming_distance(a: String, b: String) -> u32 {
     let Ok(a) = parse_hash(&a) else {
@@ -231,6 +293,14 @@ pub fn image_dhash(path: String) -> String {
 }
 
 #[php_function]
+pub fn image_phash(path: String) -> String {
+    match phash_file(&path) {
+        Ok(hash) => hash_to_hex(hash),
+        Err(_) => "".to_string(),
+    }
+}
+
+#[php_function]
 pub fn imagehash_version() -> &'static str {
     "php_imagehash 0.2.0"
 }
@@ -241,5 +311,6 @@ pub fn module(module: ModuleBuilder) -> ModuleBuilder {
         .class::<ImageHashIndex>()
         .function(wrap_function!(hamming_distance))
         .function(wrap_function!(image_dhash))
+        .function(wrap_function!(image_phash))
         .function(wrap_function!(imagehash_version))
 }
