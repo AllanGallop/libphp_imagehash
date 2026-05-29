@@ -27,6 +27,9 @@ bench-generate:
 bench-index: build
 	vendor/bin/phpbench run benchmarks/ImageHashIndexBench.php --report=default
 
+bench-candidates: build
+	vendor/bin/phpbench run benchmarks/LargeCandidateBench.php --report=default
+
 bench: build
 	vendor/bin/phpbench run benchmarks --report=default
 
@@ -38,6 +41,10 @@ bench-python:
 	. .venv/bin/activate && python benchmarks/python_imagehash_bench.py
 
 bench-full: bench-generate bench
+
+clean-bench:
+	rm -rf benchmarks/fixtures/images/*
+	rm -f tests/outputs/*.bin
 
 release: clean stubs build test
 

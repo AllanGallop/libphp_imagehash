@@ -55,13 +55,15 @@ Most PHP image hash libraries focus solely on generating perceptual hashes. `php
 
 ## Performance
 
-Benchmarks were run on 500 generated 256×256 PNG images.
+> Benchmarks were run on 500 generated 256×256 PNG images. Benchmark results depend on hardware, image format, filesystem cache, PHP configuration, and container/runtime environment. These figures are intended as project-level reference numbers, not a universal guarantee.
 
 ![<img src=".github/images/speed.png" width="100">](.github/images/speed.png)
 
 ![<img src=".github/images/hash-throughput.png" width="100">](.github/images/hash-throughput.png)
 
 ![<img src=".github/images/memory-efficiency.png" width="100">](.github/images/memory-efficiency.png)
+
+---
 
 ### Hash generation benchmark
 
@@ -71,6 +73,8 @@ Benchmarks were run on 500 generated 256×256 PNG images.
 | Python `ImageHash` | 4.168s | ~120 hashes/sec | 5.184s | ~96 hashes/sec |
 | `jenssegers/imagehash` | 7.168s | ~70 hashes/sec | 12.177s | ~41 hashes/sec |
 
+---
+
 ### Speedup
 
 | Comparison | dHash | pHash |
@@ -78,11 +82,15 @@ Benchmarks were run on 500 generated 256×256 PNG images.
 | vs Python `ImageHash` | 1.8× faster | 2.1× faster |
 | vs `jenssegers/imagehash` | 3.1× faster | 5.0× faster |
 
+---
+
 ### Memory usage
 
 | Metric | `php_imagehash` | `jenssegers/imagehash` | Improvement |
 |---|---:|---:|---:|
 | Peak memory | 715 KB | 3.3 MB | ~4.6× lower |
+
+---
 
 ### Index performance
 
@@ -97,7 +105,20 @@ Benchmarked with 500 precomputed dHashes.
 | Add + Search | 0.51 ms | ~1,960 ops/sec |
 | Save + Load Index | 12 ms | ~83 ops/sec |
 
-> Benchmark results depend on hardware, image format, filesystem cache, PHP configuration, and container/runtime environment. These figures are intended as project-level reference numbers, not a universal guarantee.
+---
+
+### Large Candidate Benchmark
+
+Synthetic worst-case benchmark with 5,000,000 indexed hashes sharing the same bucket prefix.
+
+![<img src=".github/images/large_candidate_time_memory.png" width="100"](.github/images/large_candidate_time_memory.png)
+
+| Result Limit | Time | Peak Memory |
+|---:|---:|---:|
+| 20 | 548 ms | 664 KB |
+| 1,000 | 541 ms | 1.0 MB |
+| all matches | 4.57 s | 2.73 GB |
+
 
 ## API
 

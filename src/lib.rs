@@ -87,28 +87,38 @@ impl ImageHashIndex {
             }
         }
 
-        let mut matches: Vec<(String, u32)> = candidate_set
+        let mut matches: Vec<(usize, u32)> = candidate_set
             .into_iter()
             .filter_map(|idx| {
-                let (id, candidate) = &self.records[idx];
+                let (_id, candidate) = &self.records[idx];
                 let distance = (query ^ *candidate).count_ones();
 
                 if distance <= max_distance {
-                    Some((id.clone(), distance))
+                    Some((idx, distance))
                 } else {
                     None
                 }
             })
             .collect();
 
+        if matches.len() > limit {
+            matches.select_nth_unstable_by_key(
+                limit,
+                |(_, distance)| *distance,
+            );
+
+            matches.truncate(limit);
+        }
+
         matches.sort_by_key(|(_, distance)| *distance);
-        matches.truncate(limit);
 
         matches
             .into_iter()
-            .map(|(id, distance)| {
+            .map(|(idx, distance)| {
+                let id = &self.records[idx].0;
+
                 vec![
-                    ("id".to_string(), id),
+                    ("id".to_string(), id.clone()),
                     ("distance".to_string(), distance.to_string()),
                 ]
             })
