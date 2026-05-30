@@ -7,3 +7,4 @@ Cargo.lock
 composer.lock
 *.so
 *.dll
+*.bin

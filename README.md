@@ -5,31 +5,20 @@
 
 # php_imagehash
 
-`php_imagehash` is a PHP extension written in Rust that provides perceptual image hashing and fast near-duplicate search using `dHash`, `pHash`, Hamming distance, and a bucketed similarity index.
+[Features](#features) | [Why php-imagehash](#why-php-imagehash) | [Performance](#performance) 
+| [API](#api) | [Quick Start](#quick-start) | [Building](#build-and-install) 
+| [Docker](#docker-usage) | [Testing](#testing) |  [Benchmarks](#benchmarks) 
+
+`php_imagehash` is a PHP extension written in Rust that provides perceptual image hashing and fast near-duplicate search using `dHash`, `pHash`, Hamming distance, and a bucketed similarity index capable of handling **millions** of hashes.
 
 
-* [Features](#features)
-* [Why php-imagehash](#why-php-imagehash)
-* [Performance](#performance)
-* [API](#api)
-* [Quick Start](#quick-start)
-* [Building](#build-and-install)
-* [Docker](#docker-usage)
-* [Testing](#testing) 
-* [Benchmarks](#benchmarks)
+<span style="color:green">✔</span> dHash & pHash
 
-## Quick start
+<span style="color:green">✔</span> Persistent indexes
 
-[Download](https://github.com/AllanGallop/libphp_imagehash/releases/tag/v1.0.0) the latest build of `php_imagehash-linux-x86_64-php83.so` load it directly in PHP without building the extension yourself.
+<span style="color:green">✔</span> Near-duplicate search
 
-1. Copy or install the release library `php_imagehash-linux-x86_64-php83.so` to a location accessible by PHP.
-2. Add the library to `php.ini`:
-
-```ini
-extension=/path/to/php_imagehash-linux-x86_64-php83.so
-```
-
-3. Restart PHP or your web server if needed.
+<span style="color:green">✔</span> Tested with **>5,000,000** hashes
 
 
 ## Features
@@ -45,13 +34,21 @@ extension=/path/to/php_imagehash-linux-x86_64-php83.so
 
 Most PHP image hash libraries focus solely on generating perceptual hashes. `php_imagehash` provides:
 
-- Native Rust implementation
 - dHash & pHash support
 - Persistent indexes
 - Bucketed similarity search
 - Near-duplicate image lookup
 - Lower memory usage
 - Designed with large-scale screenshot and image archives in mind
+
+
+Candidate pruning means search time is largely independent of result limit.
+| Dataset          | Search Limit | Time  |
+| ---------------- | ------------ | ----- |
+| 5,000,000 hashes | 20           | 548ms |
+| 5,000,000 hashes | 1000         | 541ms |
+| 5,000,000 hashes | Unlimited    | 4.57s |
+
 
 ## Performance
 
@@ -168,7 +165,7 @@ Returns the number of records stored in the index.
 
 #### `search(string $hash, int $maxDistance, int $limit): array`
 
-Searches for stored hashes within `maxDistance` of the given hash.
+Searches for stored hashes within `maxDistance` of the given hash. maxDistance must be a value between 1 - 64.
 
 Returns up to `limit` matches.
 
@@ -195,7 +192,20 @@ Serializes index data to a file.
 
 Loads serialized index data from a file.
 
-## Build and install
+## Quick start
+
+[Download](https://github.com/AllanGallop/libphp_imagehash/releases/tag/v1.0.0) the latest build of `php_imagehash-linux-x86_64-php83.so` and load it directly in PHP without building the extension yourself.
+
+1. Copy or install the release library `php_imagehash-linux-x86_64-php83.so` to a location accessible by PHP.
+2. Add the library to `php.ini`:
+
+```ini
+extension=/path/to/php_imagehash-linux-x86_64-php83.so
+```
+
+3. Restart PHP or your web server if needed.
+
+## Build and install from source
 
 Build from source:
 

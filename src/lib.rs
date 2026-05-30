@@ -1,8 +1,20 @@
 use ext_php_rs::prelude::*;
 use std::collections::{HashMap, HashSet};
+use std::cmp::Ordering;
 use serde::{Deserialize, Serialize};
 use image::imageops::FilterType;
 use rustdct::DctPlanner;
+
+const INDEX_VERSION: u32 = 1;
+const HASH_TYPE: &str = "dhash64";
+const MAX_SAFE_BUCKET_DISTANCE: u32 = 64;
+
+#[derive(Serialize, Deserialize)]
+struct SavedIndex {
+    version: u32,
+    hash_type: String,
+    records: Vec<(String, u64)>,
+}
 
 #[php_class]
 #[derive(Serialize, Deserialize)]
@@ -46,6 +58,7 @@ impl ImageHashIndex {
         }
     }
 
+    #[php(name = "addImage")]
     pub fn add_image(&mut self, id: String, path: String) -> bool {
         let Ok(hash) = dhash_file(&path) else {
             return false;
@@ -74,6 +87,10 @@ impl ImageHashIndex {
         let Ok(query) = parse_hash(&hash) else {
             return Vec::new();
         };
+
+        if max_distance > MAX_SAFE_BUCKET_DISTANCE {
+            return Vec::new();
+        }
 
         let mut candidate_set: HashSet<usize> = HashSet::new();
 
@@ -125,6 +142,7 @@ impl ImageHashIndex {
             .collect()
     }
 
+    #[php(name = "searchImage")]
     pub fn search_image(&self, path: String, max_distance: u32, limit: usize) -> Vec<Vec<(String, String)>> {
         let Ok(hash) = dhash_file(&path) else {
             return Vec::new();
@@ -134,23 +152,44 @@ impl ImageHashIndex {
     }
 
     pub fn save(&self, path: String) -> bool {
-        let Ok(bytes) = bincode::serialize(&self.records) else {
+        let saved = SavedIndex {
+            version: INDEX_VERSION,
+            hash_type: HASH_TYPE.to_string(),
+            records: self.records.clone(),
+        };
+
+        let Ok(bytes) = bincode::serialize(&saved) else {
             return false;
         };
 
-        std::fs::write(path, bytes).is_ok()
+        let tmp_path = format!("{}.tmp", path);
+
+        if std::fs::write(&tmp_path, bytes).is_err() {
+            return false;
+        }
+
+        std::fs::rename(tmp_path, path).is_ok()
     }
 
+    #[php(name = "loadFromFile")]
     pub fn load_from_file(&mut self, path: String) -> bool {
         let Ok(bytes) = std::fs::read(path) else {
             return false;
         };
 
-        let Ok(records) = bincode::deserialize::<Vec<(String, u64)>>(&bytes) else {
+        let Ok(saved) = bincode::deserialize::<SavedIndex>(&bytes) else {
             return false;
         };
 
-        self.records = records;
+        if saved.version != INDEX_VERSION {
+            return false;
+        }
+
+        if saved.hash_type != HASH_TYPE {
+            return false;
+        }
+
+        self.records = saved.records;
         self.rebuild_buckets();
 
         true
@@ -263,10 +302,14 @@ fn phash_file(path: &str) -> Result<u64, image::ImageError> {
         }
     }
 
-    let mut sorted = values.clone();
-    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    let mut median_values = values.clone();
+    let mid = median_values.len() / 2;
 
-    let median = sorted[sorted.len() / 2];
+    let (_, median, _) = median_values.select_nth_unstable_by(mid, |a, b| {
+        a.partial_cmp(b).unwrap_or(Ordering::Equal)
+    });
+
+    let median = *median;
 
     let mut hash: u64 = 0;
 

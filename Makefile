@@ -13,13 +13,16 @@ test-basic: build
 test-persistence: build
 	$(PHP) tests/persistence.php
 
+test-persistence-bucket: build
+	$(PHP) tests/bucket_persistence.php
+
 test-image: build
 	$(PHP) tests/image_hash.php
 
 test-similarity: build
 	$(PHP) tests/similarity.php
 
-test: test-basic test-persistence test-image test-similarity
+test: test-basic test-persistence test-image test-similarity test-persistence-bucket
 
 bench-generate:
 	php benchmarks/generate_images.php 500

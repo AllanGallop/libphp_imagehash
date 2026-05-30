@@ -23,3 +23,19 @@ assert($matches[0]['id'] === 'img1');
 assert((int)$matches[0]['distance'] === 0);
 
 echo "persistence: ok\n";
+
+$large_index = new ImageHashIndex();
+
+for ($i = 0; $i < 100000; $i++) {
+    $hash = sprintf('%016x', random_int(0, PHP_INT_MAX));
+    $index->add("img_$i", $hash);
+}
+
+$large_index->save("large.bin");
+
+$loaded_large_index = new ImageHashIndex();
+assert($loaded_large_index->loadFromFile("large.bin"));
+
+assert($loaded_large_index->count() === $large_index->count());
+
+echo "large persistence: ok\n";
