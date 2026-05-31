@@ -37,6 +37,7 @@ Most PHP image hash libraries focus solely on generating perceptual hashes. `php
 - dHash & pHash support
 - Persistent indexes
 - Bucketed similarity search
+- Find nearest match
 - Near-duplicate image lookup
 - Lower memory usage
 - Designed with large-scale screenshot and image archives in mind
@@ -117,53 +118,58 @@ Synthetic worst-case benchmark with 5,000,000 indexed hashes sharing the same bu
 | all matches | 4.57 s | 2.73 GB |
 
 
-## API
 
-### Functions
+# API
 
-#### `imagehash_version(): string`
+## Functions
+
+### `imagehash_version(): string`
 
 Returns the compiled extension version string.
 
-#### `image_dhash(string $path): string`
+### `image_dhash(string $path): string`
 
 Computes and returns the `dHash` of an image file as a 16-character hexadecimal string.
 
 Returns an empty string on failure.
 
-#### `image_phash(string $path): string`
+### `image_phash(string $path): string`
 
 Computes and returns the `pHash` of an image file as a 16-character hexadecimal string.
 
 Returns an empty string on failure.
 
-#### `hamming_distance(string $a, string $b): int`
+### `hamming_distance(string $a, string $b): int`
 
 Computes the Hamming distance between two hex hashes.
 
 Returns `4294967295` if either hash cannot be parsed.
 
-### Class: `ImageHashIndex`
 
-#### `__construct()`
+## Class: `ImageHashIndex`
+
+### `__construct()`
 
 Creates a new empty index.
 
-#### `add(string $id, string $hash): bool`
+
+### `add(string $id, string $hash): bool`
+
 
 Adds a hash string to the index with a custom identifier.
 
 Returns `true` on success.
 
-#### `addImage(string $id, string $path): bool`
+
+### `addImage(string $id, string $path): bool`
 
 Computes the image hash for the given file and adds it to the index.
 
-#### `count(): int`
+### `count(): int`
 
 Returns the number of records stored in the index.
 
-#### `search(string $hash, int $maxDistance, int $limit): array`
+### `search(string $hash, int $maxDistance, int $limit): array`
 
 Searches for stored hashes within `maxDistance` of the given hash. maxDistance must be a value between 1 - 64.
 
@@ -180,17 +186,90 @@ Example return value:
 ]
 ```
 
-#### `searchImage(string $path, int $maxDistance, int $limit): array`
+### `searchImage(string $path, int $maxDistance, int $limit): array`
 
 Computes the hash for the provided image and searches against the index.
 
-#### `save(string $path): bool`
+### `nearest(string $hash): array`
+
+Find the closest matching hash.
+
+```php
+$index = new ImageHashIndex();
+$index->add('exact', 'aaaaaaaaaaaaaaaa');
+$index->add('near', 'aaaaaaaaaaaaaaab');
+$index->add('far', 'ffffffffffffffff');
+
+$nearest = $index->nearest('aaaaaaaaaaaaaaaa');
+print_r($nearest);
+
+```
+
+Example return value:
+```php
+[
+    'id' => 'exact'
+    'distance' => 2
+]
+```
+
+### `nearestImage(string $path): array`
+
+Find the closest matching image.
+
+```php
+$index = new ImageHashIndex();
+
+$index->addImage('cat', 'cat.jpg');
+$index->addImage('dog', 'dog.jpg');
+
+$match = $index->nearestImage('cat-cropped.jpg');
+
+print_r($match);
+```
+
+Example return value:
+```php
+[
+    'id' => 'cat',
+    'distance' => 2
+]
+```
+
+### `save(string $path): bool`
 
 Serializes index data to a file.
 
-#### `loadFromFile(string $path): bool`
+### `loadFromFile(string $path): bool`
 
 Loads serialized index data from a file.
+
+### `stats(): array`
+
+Show curent index statistics
+
+```php
+$stats = $index->stats();
+print_r($stats);
+```
+Example output
+
+```php
+[
+    'hashes' => 5000000
+    'buckets' => 65536
+    'memory_bytes' => 184320000
+]
+```
+
+
+| Field        | Description                                      |
+| ------------ | ------------------------------------------------ |
+| hashes       | Total hashes stored in the index                 |
+| buckets      | Internal bucket count used for candidate pruning |
+| memory_bytes | Approximate memory used by the index             |
+
+
 
 ## Quick start
 
@@ -252,7 +331,10 @@ make test
 ```php
 <?php
 
+// Show version
 echo imagehash_version() . PHP_EOL;
+
+//--------------------------------------------------------------------//
 
 // Compute image hashes
 $dhash = image_dhash('/app/tests/fixtures/images/base.png');
@@ -260,6 +342,8 @@ $phash = image_phash('/app/tests/fixtures/images/base.png');
 
 echo "dHash: {$dhash}\n";
 echo "pHash: {$phash}\n";
+
+//--------------------------------------------------------------------//
 
 // Compare two images
 $distance = hamming_distance(
@@ -269,6 +353,8 @@ $distance = hamming_distance(
 
 echo "distance: {$distance}\n";
 
+//--------------------------------------------------------------------//
+
 // Build an index
 $index = new ImageHashIndex();
 
@@ -276,19 +362,35 @@ $index->add('base', $dhash);
 $index->addImage('similar1', '/app/tests/fixtures/images/similar1.png');
 $index->addImage('different', '/app/tests/fixtures/images/different.png');
 
+//--------------------------------------------------------------------//
+
 // Search by hash
 $results = $index->search($dhash, 4, 10);
 print_r($results);
 
+//--------------------------------------------------------------------//
+
 // Search by image
 $resultsByImage = $index->searchImage('/app/tests/fixtures/images/base.png', 4, 10);
 print_r($resultsByImage);
+
+//--------------------------------------------------------------------//
 
 // Save and load index
 $index->save('/app/tests/outputs/index.bin');
 
 $loaded = new ImageHashIndex();
 $loaded->loadFromFile('/app/tests/outputs/index.bin');
+
+//--------------------------------------------------------------------//
+
+// Find nearest matching image
+$index = new ImageHashIndex();
+
+$index->addImage('similar', '/app/tests/fixtures/images/similar.png');
+$index->addImage('different', '/app/tests/fixtures/images/different.png');
+
+print_r($index->nearest('upload.png'));
 ```
 
 ## Testing

@@ -22,7 +22,13 @@ test-image: build
 test-similarity: build
 	$(PHP) tests/similarity.php
 
-test: test-basic test-persistence test-image test-similarity test-persistence-bucket
+test-stats: build
+	$(PHP) tests/stats.php
+
+test-nearest: build
+	$(PHP) tests/nearest.php
+
+test: test-basic test-nearest test-persistence test-image test-similarity test-persistence-bucket test-stats
 
 bench-generate:
 	php benchmarks/generate_images.php 500
