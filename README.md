@@ -98,9 +98,9 @@ Benchmarked with 500 precomputed dHashes.
 
 | Operation | Time | Approx throughput |
 |---|---:|---:|
-| Add 500 hashes | 0.27 ms | ~3,700 ops/sec |
-| Search 500 hashes | 0.50 ms | ~2,000 ops/sec |
-| Add + Search | 0.51 ms | ~1,960 ops/sec |
+| Add 500 hashes | 0.27 ms | ~1.85M ops/sec |
+| Search 500 hashes | 0.50 ms | ~1M ops/sec |
+| Add + Search | 0.51 ms | ~980K ops/sec |
 | Save + Load Index | 12 ms | ~83 ops/sec |
 
 ---
