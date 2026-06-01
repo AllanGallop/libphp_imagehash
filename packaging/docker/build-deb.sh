@@ -49,4 +49,7 @@ mv /app/../*.deb /app/packaging/dist/ 2>/dev/null || true
 mv /app/../*.changes /app/packaging/dist/ 2>/dev/null || true
 mv /app/../*.buildinfo /app/packaging/dist/ 2>/dev/null || true
 
+deb="$(ls /app/packaging/dist/php-imagehash_*.deb | head -n1)"
+cp "$deb" /app/packaging/dist/php-imagehash-amd64.deb
+
 ls -lah /app/packaging/dist

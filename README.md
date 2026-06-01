@@ -286,6 +286,15 @@ extension=/path/to/php_imagehash-linux-x86_64-php83.so
 
 3. Restart PHP or your web server if needed.
 
+## Install via Package
+
+### Debian / Ubuntu
+```bash
+wget https://github.com/AllanGallop/libphp_imagehash/releases/latest/download/php-imagehash-amd64.deb
+
+sudo apt install ./php-imagehash-amd64.deb
+```
+
 ## Build and install from source
 
 Build from source:
