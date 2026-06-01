@@ -8,3 +8,7 @@ composer.lock
 *.so
 *.dll
 *.bin
+*.deb
+packaging/dist/*
+!packaging/dist/.gitkeep
+/debian/

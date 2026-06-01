@@ -5,6 +5,8 @@
 
 # php_imagehash
 
+> Check out the official docs here: [https://skullfire.co.uk/libphp-imagehash](https://skullfire.co.uk/libphp-imagehash/)
+
 [Features](#features) | [Why php-imagehash](#why-php-imagehash) | [Performance](#performance) 
 | [API](#api) | [Quick Start](#quick-start) | [Building](#build-and-install) 
 | [Docker](#docker-usage) | [Testing](#testing) |  [Benchmarks](#benchmarks) 
